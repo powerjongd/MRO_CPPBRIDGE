@@ -8,9 +8,11 @@
 #include <sstream>
 #include <thread>
 #include <stdexcept>
+#include <QApplication>
 
 #include "core/gimbal_control.hpp"
 #include "core/image_stream_bridge.hpp"
+#include "ui/main_window.hpp"
 #include "core/udp_relay.hpp"
 #include "utils/logger.hpp"
 #include "utils/settings.hpp"
@@ -281,11 +283,12 @@ int main(int argc, char** argv) {
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    std::atomic<bool> hud_running{true};
+    std::atomic<bool> hud_running{false};
     std::thread hud_thread;
     if (config.console_hud) {
+        hud_running = true;
         hud_thread = std::thread([&]() {
-            while (!g_should_exit && hud_running) {
+            while (!g_should_exit && hud_running.load()) {
                 auto img = image_bridge.status();
                 auto gib = gimbal.status();
                 auto rel = relay.status();
@@ -319,9 +322,19 @@ int main(int argc, char** argv) {
         });
     }
 
-    logger.info("Unified Bridge running. Press Ctrl+C to exit.");
-    while (!g_should_exit) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    int exit_code = 0;
+    if (cli.no_gui) {
+        logger.info("Unified Bridge running. Press Ctrl+C to exit.");
+        while (!g_should_exit) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+    } else {
+        QApplication app(argc, argv);
+        ui::MainWindow window(config_manager, config, image_bridge, gimbal, relay);
+        window.show();
+        logger.info("Unified Bridge GUI initialized. Close the window to exit.");
+        exit_code = app.exec();
+        g_should_exit = true;
     }
 
     hud_running = false;
@@ -339,5 +352,5 @@ int main(int argc, char** argv) {
     WSACleanup();
 #endif
     logger.info("Shutdown complete");
-    return 0;
+    return exit_code;
 }
