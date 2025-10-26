@@ -20,15 +20,39 @@
 
 - CMake 3.16 이상
 - C++17 컴파일러 (GCC 9+, Clang 10+, MSVC 2019 이상)
+- Qt 6 Widgets 모듈 (예: Qt 6.5+)
 
 ### 빌드 절차
 
+#### Linux / macOS
+
 ```bash
+# Qt 설치 후 (예: qtbase, qttools 패키지) CMake 가 Qt6Config.cmake 를 찾을 수 있도록 준비합니다.
+export CMAKE_PREFIX_PATH="/opt/Qt/6.5.0/gcc_64"  # Qt 가 설치된 경로에 맞게 수정
+
 cmake -S . -B build
 cmake --build build
 ```
 
-빌드가 완료되면 `build/unified_bridge`(Windows 에서는 `unified_bridge.exe`) 실행 파일이 생성됩니다.
+#### Windows (Visual Studio 포함)
+
+1. [Qt Online Installer](https://www.qt.io/download) 로 Qt 6.x (MSVC 툴체인 대상) 과 "MSVC 2019 64-bit" 컴포넌트를 설치합니다.
+2. "x64 Native Tools Command Prompt" 또는 Visual Studio Developer PowerShell 을 열고, Qt 설치 경로를 `CMAKE_PREFIX_PATH` 로 지정합니다.
+
+   ```powershell
+   set CMAKE_PREFIX_PATH=C:\Qt\6.5.0\msvc2019_64
+   ```
+
+3. CMake 를 Visual Studio 제너레이터로 실행합니다.
+
+   ```powershell
+   cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+   cmake --build build --config Release
+   ```
+
+Visual Studio IDE 를 통해 빌드하려면 3단계에서 생성된 `build/unified_bridge.sln` 을 열어 원하는 구성(Debug/Release)을 선택하고 빌드하면 됩니다. 빌드가 완료되면 `build/Release/unified_bridge.exe` (또는 선택한 구성 폴더) 가 생성됩니다.
+
+Linux/macOS 에서는 `build/unified_bridge`, Windows 에서는 `build/Release/unified_bridge.exe` 가 기본 실행 파일 경로입니다.
 
 ## 실행 방법
 
