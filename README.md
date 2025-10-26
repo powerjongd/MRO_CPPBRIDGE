@@ -40,7 +40,7 @@ cmake --build build
 2. "x64 Native Tools Command Prompt" 또는 Visual Studio Developer PowerShell 을 열고, Qt 설치 경로를 `CMAKE_PREFIX_PATH` 로 지정합니다.
 
    ```powershell
-   set CMAKE_PREFIX_PATH=C:\Qt\6.5.0\msvc2019_64
+   set CMAKE_PREFIX_PATH=C:\Qt\6.9.3\msvc2022_64
    ```
 
 3. CMake 를 Visual Studio 제너레이터로 실행합니다.
