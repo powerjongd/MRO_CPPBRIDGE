@@ -10,6 +10,11 @@
 #include <stdexcept>
 #include <QApplication>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
 #include "core/gimbal_control.hpp"
 #include "core/image_stream_bridge.hpp"
 #include "ui/main_window.hpp"
