@@ -1,8 +1,10 @@
 #include "core/udp_relay.hpp"
 
 #ifdef _WIN32
+#include <BaseTsd.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+using ssize_t = SSIZE_T;
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -91,17 +93,18 @@ void UdpRelay::worker() {
         while (running_) {
             sockaddr_in src{};
             socklen_t len = sizeof(src);
-            ssize_t received = recvfrom(sock, reinterpret_cast<char*>(buffer.data()), buffer.size(), 0,
+            ssize_t received = recvfrom(sock, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()), 0,
                                         reinterpret_cast<sockaddr*>(&src), &len);
             if (received < 0) {
                 if (!running_) break;
                 continue;
             }
 
-            std::vector<std::uint8_t> packet(buffer.begin(), buffer.begin() + received);
-            sendto(sock, reinterpret_cast<const char*>(packet.data()), packet.size(), 0,
+            auto bytes = static_cast<std::size_t>(received);
+            std::vector<std::uint8_t> packet(buffer.begin(), buffer.begin() + bytes);
+            sendto(sock, reinterpret_cast<const char*>(packet.data()), static_cast<int>(packet.size()), 0,
                    reinterpret_cast<sockaddr*>(&raw_addr), sizeof(raw_addr));
-            sendto(sock, reinterpret_cast<const char*>(packet.data()), packet.size(), 0,
+            sendto(sock, reinterpret_cast<const char*>(packet.data()), static_cast<int>(packet.size()), 0,
                    reinterpret_cast<sockaddr*>(&proc_addr), sizeof(proc_addr));
 
             if (rover_logger_ && rover_logger_->active()) {

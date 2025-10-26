@@ -11,7 +11,16 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-add_executable(unified_bridge
+if (COMMAND qt_standard_project_setup)
+    qt_standard_project_setup()
+endif()
+
+set(UI_HEADERS
+    include/ui/main_window.hpp
+    include/ui/module_config_dialog.hpp
+)
+
+set(APP_SOURCES
     src/main.cpp
     src/utils/json.cpp
     src/utils/logger.cpp
@@ -22,7 +31,14 @@ add_executable(unified_bridge
     src/core/udp_relay.cpp
     src/ui/main_window.cpp
     src/ui/module_config_dialog.cpp
+    ${UI_HEADERS}
 )
+
+if (COMMAND qt_add_executable)
+    qt_add_executable(unified_bridge ${APP_SOURCES})
+else()
+    add_executable(unified_bridge ${APP_SOURCES})
+endif()
 
 target_include_directories(unified_bridge PRIVATE include)
 target_link_libraries(unified_bridge PRIVATE Qt6::Widgets)
@@ -33,4 +49,8 @@ if (MSVC)
 else()
     find_package(Threads REQUIRED)
     target_link_libraries(unified_bridge PRIVATE Threads::Threads)
+endif()
+
+if (COMMAND qt_finalize_executable)
+    qt_finalize_executable(unified_bridge)
 endif()

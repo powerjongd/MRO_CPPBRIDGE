@@ -1,8 +1,10 @@
 #include "core/image_stream_bridge.hpp"
 
 #ifdef _WIN32
+#include <BaseTsd.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+using ssize_t = SSIZE_T;
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -38,7 +40,11 @@ void ImageStreamBridge::start() {
 
     tcp_socket_ = network::create_tcp_socket();
     int opt = 1;
+#ifdef _WIN32
+    setsockopt(tcp_socket_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&opt), sizeof(opt));
+#else
     setsockopt(tcp_socket_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+#endif
     sockaddr_in tcp_addr = network::make_address(config_.ip, static_cast<std::uint16_t>(config_.tcp_port));
     if (bind(tcp_socket_, reinterpret_cast<sockaddr*>(&tcp_addr), sizeof(tcp_addr)) < 0 ||
         listen(tcp_socket_, 5) < 0) {
@@ -88,8 +94,8 @@ void ImageStreamBridge::udp_loop() {
     while (running_) {
         sockaddr_in src{};
         socklen_t len = sizeof(src);
-        ssize_t received = recvfrom(udp_socket_, reinterpret_cast<char*>(buffer.data()), buffer.size(), 0,
-                                    reinterpret_cast<sockaddr*>(&src), &len);
+        ssize_t received = recvfrom(udp_socket_, reinterpret_cast<char*>(buffer.data()), static_cast<int>(buffer.size()),
+                                    0, reinterpret_cast<sockaddr*>(&src), &len);
         if (received < 0) {
             if (!running_) break;
             continue;
@@ -97,7 +103,8 @@ void ImageStreamBridge::udp_loop() {
 
         {
             std::lock_guard<std::mutex> lock(frame_mutex_);
-            last_frame_.assign(buffer.begin(), buffer.begin() + received);
+            auto bytes = static_cast<std::size_t>(received);
+            last_frame_.assign(buffer.begin(), buffer.begin() + bytes);
             last_frame_time_ = std::chrono::system_clock::now();
         }
     }
@@ -130,7 +137,8 @@ void ImageStreamBridge::tcp_loop() {
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
                     continue;
                 }
-                ssize_t sent = send(client_fd, reinterpret_cast<const char*>(frame_copy.data()), frame_copy.size(), 0);
+                ssize_t sent = send(client_fd, reinterpret_cast<const char*>(frame_copy.data()),
+                                     static_cast<int>(frame_copy.size()), 0);
                 if (sent < 0) {
                     break;
                 }
