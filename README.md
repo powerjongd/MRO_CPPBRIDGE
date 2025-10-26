@@ -50,6 +50,9 @@ cmake --build build
    cmake --build build --config Release
    ```
 
+    혹은 명령어 한줄로 설치경로까지 지정 (더 확실)
+   cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:\Qt\6.9.3\msvc2022_64"
+
 Visual Studio IDE 를 통해 빌드하려면 3단계에서 생성된 `build/unified_bridge.sln` 을 열어 원하는 구성(Debug/Release)을 선택하고 빌드하면 됩니다. 빌드가 완료되면 `build/Release/unified_bridge.exe` (또는 선택한 구성 폴더) 가 생성됩니다.
 
 Linux/macOS 에서는 `build/unified_bridge`, Windows 에서는 `build/Release/unified_bridge.exe` 가 기본 실행 파일 경로입니다.
