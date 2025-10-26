@@ -23,12 +23,9 @@ std::unique_ptr<QValidator> make_validator(FieldSpec::Type type, QObject* parent
         return validator;
     }
     case FieldSpec::Type::IpAddress: {
-        QRegularExpression regex(
-            R"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\."
-            R"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\."
-            R"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\."
-            R"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))"
-        );
+        static const QRegularExpression regex(QStringLiteral(
+            R"(^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)$)"
+        ));
         auto validator = std::make_unique<QRegularExpressionValidator>(regex, parent);
         validator->setLocale(QLocale::C);
         return validator;
