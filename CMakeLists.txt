@@ -5,6 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
 add_executable(unified_bridge
     src/main.cpp
     src/utils/json.cpp
@@ -14,9 +20,12 @@ add_executable(unified_bridge
     src/core/image_stream_bridge.cpp
     src/core/gimbal_control.cpp
     src/core/udp_relay.cpp
+    src/ui/main_window.cpp
+    src/ui/module_config_dialog.cpp
 )
 
 target_include_directories(unified_bridge PRIVATE include)
+target_link_libraries(unified_bridge PRIVATE Qt6::Widgets)
 
 if (MSVC)
     target_compile_definitions(unified_bridge PRIVATE _CRT_SECURE_NO_WARNINGS)
